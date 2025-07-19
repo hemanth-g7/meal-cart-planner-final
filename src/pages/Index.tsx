@@ -1,12 +1,19 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, Users, Calendar, CheckCircle, User, LogOut, Package, ChefHat, Clock, Star } from "lucide-react";
+import { ShoppingCart, Users, Calendar, CheckCircle, User, LogOut, Package, ChefHat, Clock, Star, ArrowRight, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedBackground } from "@/components/ui/animated-background";
+import { GlassCard, GlassCardHeader, GlassCardContent } from "@/components/ui/glass-card";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { IconWrapper } from "@/components/ui/icon-wrapper";
+import { ProgressIndicator } from "@/components/ui/progress-indicator";
+import { MealCard } from "@/components/ui/meal-card";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Button } from "@/components/ui/button";
 
 interface User {
   username: string;
@@ -22,6 +29,7 @@ interface MealSelection {
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<'signin' | 'welcome' | 'meals' | 'breakfast' | 'lunch' | 'dinner' | 'confirmation' | 'shopping'>('signin');
+  const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [mealSelection, setMealSelection] = useState<MealSelection>({
     breakfast: [],
@@ -32,21 +40,43 @@ const Index = () => {
   const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'dinner'>('breakfast');
   const { toast } = useToast();
 
+  const progressSteps = ['Sign In', 'Welcome', 'Meals', 'Selection', 'Confirm', 'Shopping'];
+  const getCurrentStepIndex = () => {
+    switch (currentStep) {
+      case 'signin': return 0;
+      case 'welcome': return 1;
+      case 'meals': return 2;
+      case 'breakfast':
+      case 'lunch':
+      case 'dinner': return 3;
+      case 'confirmation': return 4;
+      case 'shopping': return 5;
+      default: return 0;
+    }
+  };
+
   const handleSignIn = (event: React.FormEvent) => {
     event.preventDefault();
+    setIsLoading(true);
     const formData = new FormData(event.target as HTMLFormElement);
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
     const familySize = parseInt(formData.get('familySize') as string);
 
-    if (username && password && familySize) {
-      setUser({ username, familySize });
-      setCurrentStep('welcome');
-      toast({
-        title: "Welcome!",
-        description: `Hello ${username}! Let's plan your groceries.`,
-      });
-    }
+    // Simulate API call
+    setTimeout(() => {
+      if (username && password && familySize) {
+        setUser({ username, familySize });
+        setCurrentStep('welcome');
+        setIsLoading(false);
+        toast({
+          title: "Welcome!",
+          description: `Hello ${username}! Let's plan your groceries.`,
+        });
+      } else {
+        setIsLoading(false);
+      }
+    }, 1500);
   };
 
   const handleLogout = () => {
@@ -144,23 +174,23 @@ const Index = () => {
   };
 
   const UserProfile = () => (
-    <div className="absolute top-6 right-6 z-10">
+    <div className="absolute top-8 right-8 z-20">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-white/20 hover:bg-white hover:shadow-xl transition-all duration-300">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-              <User className="w-4 h-4 text-white" />
+          <Button variant="ghost" className="flex items-center gap-4 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl p-5 border border-white/30 hover:bg-white hover:shadow-2xl transition-all duration-300 hover:scale-105">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <User className="w-5 h-5 text-white" />
             </div>
-            <div className="text-sm text-left">
-              <div className="font-semibold text-gray-800">{user?.username}</div>
-              <div className="text-gray-500 flex items-center gap-1 text-xs">
+            <div className="text-left">
+              <div className="font-bold text-gray-800 text-lg">{user?.username}</div>
+              <div className="text-gray-500 flex items-center gap-1 text-sm">
                 <Users className="w-3 h-3" />
                 {user?.familySize} members
               </div>
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-72 bg-white/95 backdrop-blur-sm border-white/20">
+        <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-xl border-white/30 shadow-2xl rounded-2xl">
           <DropdownMenuLabel>Account Details</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="flex items-center gap-2">
@@ -199,48 +229,45 @@ const Index = () => {
   );
 
   const renderSignIn = () => (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-green-50 p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/30 to-yellow-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-green-200/30 to-blue-200/30 rounded-full blur-3xl"></div>
-      </div>
-      
-      <Card className="w-full max-w-md relative z-10 shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <ChefHat className="h-8 w-8 text-white" />
-          </div>
+    <AnimatedBackground variant="signin">
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <GlassCard className="w-full max-w-lg" variant="elevated">
+          <GlassCardHeader>
+            <IconWrapper variant="warning" size="xl" animated>
+              <ChefHat className="h-10 w-10" />
+            </IconWrapper>
+            <div className="mt-6">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
             Meal Cart Planner Pro
           </CardTitle>
-          <p className="text-gray-600 mt-2">Plan your perfect monthly grocery list</p>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div>
-              <Label htmlFor="username" className="text-sm font-medium text-gray-700">Username</Label>
+              <p className="text-gray-600 mt-3 text-lg">Plan your perfect monthly grocery list</p>
+            </div>
+          </GlassCardHeader>
+          <GlassCardContent>
+            <form onSubmit={handleSignIn} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-sm font-semibold text-gray-700">Username</Label>
               <Input 
                 id="username" 
                 name="username" 
                 placeholder="Enter your username" 
                 required 
-                className="mt-1 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-14 border-2 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl text-lg"
               />
-            </div>
-            <div>
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</Label>
               <Input 
                 id="password" 
                 name="password" 
                 type="password" 
                 placeholder="Enter your password" 
                 required 
-                className="mt-1 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-14 border-2 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl text-lg"
               />
-            </div>
-            <div>
-              <Label htmlFor="familySize" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="familySize" className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                 <Users className="h-4 w-4" />
                 Family Members
               </Label>
@@ -252,221 +279,216 @@ const Index = () => {
                 max="20" 
                 placeholder="Number of family members" 
                 required 
-                className="mt-1 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-14 border-2 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl text-lg"
               />
-            </div>
-            <Button type="submit" className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
-              Sign In & Start Planning
-            </Button>
+              </div>
+              <GradientButton 
+                type="submit" 
+                variant="warning" 
+                size="xl" 
+                className="w-full mt-8"
+                loading={isLoading}
+              >
+                {isLoading ? 'Signing In...' : 'Sign In & Start Planning'}
+              </GradientButton>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+          </GlassCardContent>
+        </GlassCard>
+      </div>
+    </AnimatedBackground>
   );
 
   const renderWelcome = () => (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-200/30 to-purple-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-200/30 to-pink-200/30 rounded-full blur-3xl"></div>
-      </div>
-      
+    <AnimatedBackground variant="welcome">
       <UserProfile />
-      <Card className="w-full max-w-lg text-center relative z-10 shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-        <CardHeader>
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <Star className="h-10 w-10 text-white" />
-          </div>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <GlassCard className="w-full max-w-2xl text-center" variant="elevated">
+          <GlassCardHeader>
+            <ProgressIndicator steps={progressSteps} currentStep={getCurrentStepIndex()} />
+            <IconWrapper variant="primary" size="xl" animated>
+              <Star className="h-12 w-12" />
+            </IconWrapper>
+            <div className="mt-6">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Welcome {user?.username}!
           </CardTitle>
-          <p className="text-gray-600 flex items-center justify-center gap-2 mt-3">
+              <p className="text-gray-600 flex items-center justify-center gap-2 mt-4 text-lg">
             <Users className="h-4 w-4" />
             Planning for {user?.familySize} family members
           </p>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          <div className="text-lg text-gray-700">
+            </div>
+          </GlassCardHeader>
+          <GlassCardContent>
+            <div className="text-xl text-gray-700 mb-10">
             Ready to create your perfect monthly grocery plan?
           </div>
-          <div className="space-y-4">
-            <Button 
+            <div className="space-y-6">
+              <GradientButton
               onClick={() => setCurrentStep('meals')} 
-              className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-            >
+                variant="success"
+                size="xl"
+                className="w-full"
+              >
               <Calendar className="mr-3 h-6 w-6" />
               Yes, Let's Start Planning!
-            </Button>
-            <Button variant="outline" className="w-full h-12 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-medium">
+              </GradientButton>
+              <Button variant="outline" className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-semibold text-lg">
               Maybe Later
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          </GlassCardContent>
+        </GlassCard>
+      </div>
+    </AnimatedBackground>
   );
 
   const renderMealSelection = () => (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50 p-6 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-green-200/30 to-blue-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-emerald-200/30 to-teal-200/30 rounded-full blur-3xl"></div>
-      </div>
-      
+    <AnimatedBackground variant="meals">
       <UserProfile />
-      <div className="max-w-6xl mx-auto relative z-10">
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <ChefHat className="h-8 w-8 text-white" />
-            </div>
+      <div className="min-h-screen p-8">
+        <div className="max-w-7xl mx-auto">
+          <GlassCard variant="elevated">
+            <GlassCardHeader>
+              <ProgressIndicator steps={progressSteps} currentStep={getCurrentStepIndex()} />
+              <IconWrapper variant="success" size="xl" animated>
+                <ChefHat className="h-10 w-10" />
+              </IconWrapper>
+              <div className="mt-6">
             <CardTitle className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
               Select Your Meals
             </CardTitle>
-            <p className="text-gray-600 text-lg mt-3">Choose which meals you'd like to plan for the month</p>
-          </CardHeader>
-          <CardContent className="px-8 pb-8">
-            <div className="grid md:grid-cols-3 gap-8">
+                <p className="text-gray-600 text-xl mt-4">Choose which meals you'd like to plan for the month</p>
+              </div>
+            </GlassCardHeader>
+            <GlassCardContent>
+              <div className="grid md:grid-cols-3 gap-10">
               {[
-                { type: 'breakfast', name: 'Breakfast', color: 'from-yellow-400 to-orange-500', icon: '🌅', desc: 'Start your day right' },
-                { type: 'lunch', name: 'Lunch', color: 'from-green-400 to-blue-500', icon: '☀️', desc: 'Midday energy boost' },
-                { type: 'dinner', name: 'Dinner', color: 'from-purple-400 to-pink-500', icon: '🌙', desc: 'Evening satisfaction' }
+                  { type: 'breakfast', name: 'Breakfast', color: 'from-yellow-400 to-orange-500', icon: '🌅', desc: 'Start your day right', variant: 'warning' },
+                  { type: 'lunch', name: 'Lunch', color: 'from-green-400 to-blue-500', icon: '☀️', desc: 'Midday energy boost', variant: 'success' },
+                  { type: 'dinner', name: 'Dinner', color: 'from-purple-400 to-pink-500', icon: '🌙', desc: 'Evening satisfaction', variant: 'primary' }
               ].map(meal => (
-                <Card 
+                  <GlassCard
                   key={meal.type}
-                  className="cursor-pointer hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl border-0 bg-white/90 backdrop-blur-sm group"
+                    className="cursor-pointer group"
+                    variant="elevated"
                   onClick={() => {
                     setSelectedMealType(meal.type as 'breakfast' | 'lunch' | 'dinner');
                     setCurrentStep(meal.type as 'breakfast' | 'lunch' | 'dinner');
                   }}
                 >
-                  <CardContent className="p-8 text-center">
-                    <div className={`w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-r ${meal.color} flex items-center justify-center text-4xl shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
+                    <GlassCardContent className="p-10 text-center">
+                      <div className={`w-28 h-28 mx-auto mb-8 rounded-3xl bg-gradient-to-r ${meal.color} flex items-center justify-center text-5xl shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110`}>
                       {meal.icon}
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">{meal.name}</h3>
-                    <p className="text-gray-600 font-medium">{meal.desc}</p>
-                    <p className="text-gray-500 text-sm mt-2">Plan your {meal.name.toLowerCase()} options</p>
-                  </CardContent>
-                </Card>
+                      <h3 className="text-3xl font-bold text-gray-800 mb-3">{meal.name}</h3>
+                      <p className="text-gray-600 font-semibold text-lg">{meal.desc}</p>
+                      <p className="text-gray-500 mt-3">Plan your {meal.name.toLowerCase()} options</p>
+                      <div className="mt-6">
+                        <ArrowRight className="w-6 h-6 mx-auto text-gray-400 group-hover:text-gray-600 transition-colors duration-300" />
+                      </div>
+                    </GlassCardContent>
+                  </GlassCard>
               ))}
             </div>
-          </CardContent>
-        </Card>
+            </GlassCardContent>
+          </GlassCard>
+        </div>
       </div>
-    </div>
+    </AnimatedBackground>
   );
 
   const renderFoodSelection = (mealType: 'breakfast' | 'lunch' | 'dinner') => (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 p-6 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-rose-200/30 to-orange-200/30 rounded-full blur-3xl"></div>
-      </div>
-      
+    <AnimatedBackground variant="selection">
       <UserProfile />
-      <div className="max-w-7xl mx-auto relative z-10">
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <ChefHat className="h-8 w-8 text-white" />
-            </div>
+      <div className="min-h-screen p-8">
+        <div className="max-w-7xl mx-auto">
+          <GlassCard variant="elevated">
+            <GlassCardHeader>
+              <ProgressIndicator steps={progressSteps} currentStep={getCurrentStepIndex()} />
+              <IconWrapper variant="danger" size="xl" animated>
+                <ChefHat className="h-10 w-10" />
+              </IconWrapper>
+              <div className="mt-6">
             <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent capitalize">
               Select {mealType} Items
             </CardTitle>
-            <p className="text-gray-600 text-lg mt-3">Choose your favorite {mealType} options for the month</p>
-          </CardHeader>
-          <CardContent className="px-8 pb-8">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
+                <p className="text-gray-600 text-xl mt-4">Choose your favorite {mealType} options for the month</p>
+              </div>
+            </GlassCardHeader>
+            <GlassCardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-12">
               {mealOptions[mealType].map(item => (
-                <Card 
+                  <MealCard
                   key={item.id}
-                  className={`cursor-pointer transition-all duration-300 hover:scale-105 group ${
-                    mealSelection[mealType].includes(item.id) 
-                      ? 'ring-4 ring-purple-500 bg-purple-50 shadow-xl' 
-                      : 'hover:shadow-xl border-0 bg-white/90 backdrop-blur-sm'
-                  }`}
+                    id={item.id}
+                    name={item.name}
+                    selected={mealSelection[mealType].includes(item.id)}
                   onClick={() => toggleSelection(mealType, item.id)}
-                >
-                  <CardContent className="p-6 text-center">
-                    <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow duration-300">
-                      <span className="text-3xl">🍽️</span>
-                    </div>
-                    <h4 className="font-semibold text-gray-800 text-lg mb-2">{item.name}</h4>
-                    {mealSelection[mealType].includes(item.id) && (
-                      <div className="flex items-center justify-center mt-3">
-                        <Badge className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Selected
-                        </Badge>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    variant="selection"
+                  />
               ))}
             </div>
-            <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+              <div className="flex justify-between items-center pt-8 border-t border-gray-200/50">
               <Button 
                 variant="outline"
-                className="h-12 px-8 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-medium"
+                  className="h-14 px-10 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-semibold text-lg"
                 onClick={() => setCurrentStep('meals')}
               >
+                  <ArrowLeft className="mr-2 h-5 w-5" />
                 Back to Meals
               </Button>
-              <Button 
+                <GradientButton
                 onClick={() => setCurrentStep('confirmation')}
                 disabled={mealSelection[mealType].length === 0}
-                className="h-12 px-8 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-              >
+                  variant="danger"
+                  size="lg"
+                >
                 Continue to Frequencies
-              </Button>
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </GradientButton>
             </div>
-          </CardContent>
-        </Card>
+            </GlassCardContent>
+          </GlassCard>
+        </div>
       </div>
-    </div>
+    </AnimatedBackground>
   );
 
   const renderConfirmation = () => {
     const allSelectedItems = [...mealSelection.breakfast, ...mealSelection.lunch, ...mealSelection.dinner];
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 p-6 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-indigo-200/30 to-cyan-200/30 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-200/30 to-teal-200/30 rounded-full blur-3xl"></div>
-        </div>
-        
+      <AnimatedBackground variant="confirmation">
         <UserProfile />
-        <div className="max-w-5xl mx-auto relative z-10">
-          <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="text-center pb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <Clock className="h-8 w-8 text-white" />
-              </div>
+        <div className="min-h-screen p-8">
+          <div className="max-w-6xl mx-auto">
+            <GlassCard variant="elevated">
+              <GlassCardHeader>
+                <ProgressIndicator steps={progressSteps} currentStep={getCurrentStepIndex()} />
+                <IconWrapper variant="info" size="xl" animated>
+                  <Clock className="h-10 w-10" />
+                </IconWrapper>
+                <div className="mt-6">
               <CardTitle className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
                 Confirm Your Meal Plan
               </CardTitle>
-              <p className="text-gray-600 text-lg mt-3">Set how many times you'll have each meal per month</p>
-            </CardHeader>
-            <CardContent className="px-8 pb-8">
-              <div className="space-y-6 mb-10">
+                  <p className="text-gray-600 text-xl mt-4">Set how many times you'll have each meal per month</p>
+                </div>
+              </GlassCardHeader>
+              <GlassCardContent>
+                <div className="space-y-8 mb-12">
                 {allSelectedItems.map(itemId => {
                   const item = Object.values(mealOptions).flat().find(i => i.id === itemId);
                   return (
-                    <div key={itemId} className="flex items-center justify-between p-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
-                      <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-md">
+                      <div key={itemId} className="flex items-center justify-between p-8 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/30">
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg">
                           <span className="text-2xl">🍽️</span>
                         </div>
-                        <span className="font-semibold text-gray-800 text-lg">{item?.name}</span>
+                          <span className="font-bold text-gray-800 text-xl">{item?.name}</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Label htmlFor={`freq-${itemId}`} className="text-sm font-medium text-gray-600">
+                        <div className="flex items-center gap-4">
+                          <Label htmlFor={`freq-${itemId}`} className="text-lg font-semibold text-gray-600">
                           Times/Month:
                         </Label>
                         <Input
@@ -475,7 +497,7 @@ const Index = () => {
                           min="1"
                           max="30"
                           defaultValue="4"
-                          className="w-24 h-10 text-center border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg"
+                            className="w-28 h-12 text-center border-2 border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl text-lg font-semibold"
                           onChange={(e) => updateFrequency(itemId, parseInt(e.target.value) || 1)}
                         />
                       </div>
@@ -483,25 +505,29 @@ const Index = () => {
                   );
                 })}
               </div>
-              <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+                <div className="flex justify-between items-center pt-8 border-t border-gray-200/50">
                 <Button 
                   variant="outline"
-                  className="h-12 px-8 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-medium"
+                    className="h-14 px-10 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-semibold text-lg"
                   onClick={() => setCurrentStep('meals')}
                 >
+                    <ArrowLeft className="mr-2 h-5 w-5" />
                   Back to Meal Selection
                 </Button>
-                <Button 
+                  <GradientButton
                   onClick={() => setCurrentStep('shopping')}
-                  className="h-12 px-8 bg-gradient-to-r from-indigo-500 to-cyan-600 hover:from-indigo-600 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                >
+                    variant="info"
+                    size="lg"
+                  >
                   Generate Shopping List
-                </Button>
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </GradientButton>
               </div>
-            </CardContent>
-          </Card>
+              </GlassCardContent>
+            </GlassCard>
+          </div>
         </div>
-      </div>
+      </AnimatedBackground>
     );
   };
 
@@ -509,66 +535,66 @@ const Index = () => {
     const shoppingList = generateShoppingList();
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-6 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-emerald-200/30 to-teal-200/30 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-green-200/30 to-blue-200/30 rounded-full blur-3xl"></div>
-        </div>
-        
+      <AnimatedBackground variant="shopping">
         <UserProfile />
-        <div className="max-w-5xl mx-auto relative z-10">
-          <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="text-center pb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <ShoppingCart className="h-6 w-6" />
-              </div>
+        <div className="min-h-screen p-8">
+          <div className="max-w-6xl mx-auto">
+            <GlassCard variant="elevated">
+              <GlassCardHeader>
+                <ProgressIndicator steps={progressSteps} currentStep={getCurrentStepIndex()} />
+                <IconWrapper variant="success" size="xl" animated>
+                  <ShoppingCart className="h-10 w-10" />
+                </IconWrapper>
+                <div className="mt-6">
               <CardTitle className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent flex items-center justify-center gap-3">
                 Your Monthly Shopping List
               </CardTitle>
-              <p className="text-gray-600 text-lg mt-3">Customized for {user?.familySize} family members</p>
-            </CardHeader>
-            <CardContent className="px-8 pb-8">
-              <div className="grid md:grid-cols-2 gap-6 mb-10">
+                  <p className="text-gray-600 text-xl mt-4">Customized for {user?.familySize} family members</p>
+                </div>
+              </GlassCardHeader>
+              <GlassCardContent>
+                <div className="grid md:grid-cols-2 gap-8 mb-12">
                 {Object.entries(shoppingList).map(([ingredient, quantity]) => (
-                  <div key={ingredient} className="flex items-center justify-between p-5 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
-                    <div className="flex items-center gap-4">
-                      <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                      <span className="font-semibold text-gray-800 text-lg">{ingredient}</span>
+                    <div key={ingredient} className="flex items-center justify-between p-6 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/30">
+                      <div className="flex items-center gap-4">
+                        <div className="w-4 h-4 bg-emerald-500 rounded-full shadow-md"></div>
+                        <span className="font-bold text-gray-800 text-lg">{ingredient}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-emerald-500 text-white px-3 py-1 rounded-full font-semibold">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-emerald-500 text-white px-4 py-2 rounded-full font-bold text-lg">
                         ×{quantity}
                       </Badge>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="text-center space-y-6 pt-6 border-t border-gray-200">
-                <Button 
+                <div className="text-center space-y-8 pt-8 border-t border-gray-200/50">
+                  <GradientButton
                   onClick={() => {
                     toast({
                       title: "Shopping list saved!",
                       description: "Your monthly grocery plan has been saved successfully.",
                     });
                   }}
-                  className="h-14 px-10 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                >
+                    variant="success"
+                    size="xl"
+                  >
                   <CheckCircle className="mr-3 h-5 w-5" />
                   Save Shopping List
-                </Button>
+                  </GradientButton>
                 <Button 
                   variant="outline"
-                  className="h-12 px-8 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-medium"
+                    className="h-14 px-10 border-2 border-gray-200 hover:border-gray-300 rounded-xl font-semibold text-lg"
                   onClick={() => setCurrentStep('welcome')}
                 >
                   Start Over
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+              </GlassCardContent>
+            </GlassCard>
+          </div>
         </div>
-      </div>
+      </AnimatedBackground>
     );
   };
 
